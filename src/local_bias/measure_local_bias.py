@@ -73,8 +73,14 @@ def topk_overlap(tokenizer, model, embedding, P, A, device, f, k=50):
     # read sentences
     # new_context = np.loadtxt("../../data/gender_occupation_bias_context.txt")
 
-    male_sent = np.loadtxt("../../data/corpus_male_context.txt", dtype=str, delimiter="\n")
-    female_sent = np.loadtxt("../../data/corpus_female_context.txt", dtype=str, delimiter="\n")
+    # male_sent = np.loadtxt("../../data/corpus_male_context.txt", dtype=str, delimiter="\n")
+    with open('../../data/corpus_male_context.txt') as fm:
+        male_sent = np.array([line.rstrip('\n') for line in fm])
+
+    with open('../../data/corpus_female_context.txt') as ff:
+        female_sent = np.array([line.rstrip('\n') for line in ff])
+
+    # female_sent = np.loadtxt("../../data/corpus_female_context.txt", dtype=str, delimiter="\n")
     # male_sent = np.loadtxt("../../new_data/corpus_male_context.txt", dtype=str, delimiter="\n")
     # female_sent = np.loadtxt("../../new_data/corpus_female_context.txt", dtype=str, delimiter="\n")
     print(male_sent.shape)
@@ -171,8 +177,14 @@ def hellinger_distance_between_bias_swapped_context(tokenizer, model, embedding,
     # our corpus
     print("Fairness(KL) - Diverse Context")
     print("Fairness(KL) - Diverse Context", file=f)
-    male_context = np.loadtxt("../../data/kl_corpus_male_context.txt", dtype=str, delimiter="\n")
-    female_context = np.loadtxt("../../data/kl_corpus_female_context.txt", dtype=str, delimiter="\n")
+    # male_context = np.loadtxt("../../data/kl_corpus_male_context.txt", dtype=str, delimiter="\n")
+    # female_context = np.loadtxt("../../data/kl_corpus_female_context.txt", dtype=str, delimiter="\n")
+
+    with open('../../data/kl_corpus_male_context.txt') as fm:
+        male_context = np.array([line.rstrip('\n') for line in fm])
+
+    with open('../../data/kl_corpus_female_context.txt') as ff:
+        female_context = np.array([line.rstrip('\n') for line in ff])
 
     # kl1_avg, kl2_avg = local_kl(male_context, female_context, tokenizer, model, embedding, P, A, device)
     kl1_avg, kl2_avg = local_Hellinger(male_context, female_context, tokenizer, model, embedding, P, A, device)
@@ -198,7 +210,9 @@ def probabiliy_of_real_next_token(tokenizer, model, embedding, P, A, device, f):
     print('-'*100, file=f)
     print("### Local Metric2.2: Weat_true_label - reflect language model ###", file=f)
 
-    weat_corpus = np.loadtxt("../../data/weat_corpus.txt", dtype=str, delimiter="\n")[:30]
+    # weat_corpus = np.loadtxt("../../data/weat_corpus.txt", dtype=str, delimiter="\n")[:30]
+    with open("../../data/weat_corpus.txt") as fw:
+        weat_corpus = np.array([line.rstrip('\n') for line in fw])[:30]
 
     weat_dataset = []
     weat_pos = []
