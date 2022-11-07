@@ -26,6 +26,70 @@ from transformers import (
     XLNetTokenizer,
 )
 
+def postprocess_next_token_scores(
+        self,
+        scores,
+        input_ids,
+        no_repeat_ngram_size,
+        bad_words_ids,
+        cur_len,
+        min_length,
+        max_length,
+        eos_token_id,
+        repetition_penalty,
+        batch_size,
+        num_beams,
+    ):
+        # repetition penalty (from CTRL paper https://arxiv.org/abs/1909.05858)
+        if repetition_penalty != 1.0:
+            self.enforce_repetition_penalty_(
+                scores, batch_size, num_beams, input_ids, repetition_penalty,
+            )
+
+        # set eos token prob to zero if min_length is not reached
+        if eos_token_id is not None and cur_len < min_length:
+            scores[:, eos_token_id] = -float("inf")
+
+        if no_repeat_ngram_size > 0:
+            # calculate a list of banned tokens to prevent repetitively generating the same ngrams
+            num_batch_hypotheses = batch_size * num_beams
+            # from fairseq: https://github.com/pytorch/fairseq/blob/a07cb6f40480928c9e0548b737aadd36ee66ac76/fairseq/sequence_generator.py#L345
+            banned_batch_tokens = calc_banned_ngram_tokens(
+                input_ids, num_batch_hypotheses, no_repeat_ngram_size, cur_len
+            )
+            for i, banned_tokens in enumerate(banned_batch_tokens):
+                scores[i, banned_tokens] = -float("inf")
+
+        if bad_words_ids is not None:
+            # calculate a list of banned tokens according to bad words
+            banned_tokens = calc_banned_bad_words_ids(input_ids, bad_words_ids)
+
+            for i, banned_tokens in enumerate(banned_tokens):
+                scores[i, banned_tokens] = -float("inf")
+
+        return scores
+
+def calc_banned_ngram_tokens(prev_input_ids, num_hypos, ngram_size, cur_len):
+    """Copied from fairseq for no_repeat_ngram in beam_search"""
+    if cur_len + 1 < no_repeat_ngram_size:
+        # return no banned tokens if we haven't generated no_repeat_ngram_size tokens yet
+        return [[] for _ in range(num_hypos)]
+    generated_ngrams = [{} for _ in range(num_hypos)]
+    for idx in range(num_hypos):
+        gen_tokens = prev_input_ids[idx].tolist()
+        generated_ngram = generated_ngrams[idx]
+        for ngram in zip(*[gen_tokens[i:] for i in range(no_repeat_ngram_size)]):
+            prev_ngram_tuple = tuple(ngram[:-1])
+            generated_ngram[prev_ngram_tuple] = generated_ngram.get(prev_ngram_tuple, []) + [ngram[-1]]
+
+    def _get_generated_ngrams(hypo_idx):
+        # Before decoding the next token, prevent decoding of ngrams that have already appeared
+        start_idx = cur_len + 1 - no_repeat_ngram_size
+        ngram_idx = tuple(prev_input_ids[hypo_idx, start_idx:cur_len].tolist())
+        return generated_ngrams[hypo_idx].get(ngram_idx, [])
+
+    banned_tokens = [_get_generated_ngrams(hypo_idx) for hypo_idx in range(num_hypos)]
+    return banned_tokens    
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -208,7 +272,8 @@ def generate_sentences(tokenizer, model, embedding, P, device, method, f):
                         new_logits = new_logits.to(device)
                         next_token_logits = new_logits
 
-                        scores = model.postprocess_next_token_scores(
+                        scores = postprocess_next_token_scores(
+                            model,
                             scores=next_token_logits,
                             input_ids=input_ids,
                             no_repeat_ngram_size=no_repeat_ngram_size,
