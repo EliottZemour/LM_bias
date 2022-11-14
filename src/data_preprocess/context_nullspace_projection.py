@@ -55,7 +55,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import PCA
 import scipy
 from scipy import linalg
-from scipy.stats.stats import pearsonr
+from scipy.stats import pearsonr
 import tqdm
 import matplotlib
 import matplotlib.pyplot as plt
@@ -66,9 +66,18 @@ from torch.nn import functional as F
 def load_data():
     # load clipped sentences
     sample = 5000
-    male_sent = np.loadtxt("../../data/male_sentences_clip.txt", dtype=str, delimiter="\n")
-    female_sent = np.loadtxt("../../data/female_sentences_clip.txt", dtype=str, delimiter="\n")
-    neut_sent = np.loadtxt("../../data/neut_sentences.txt", dtype=str, delimiter="\n")
+    # male_sent = np.loadtxt("../../data/male_sentences_clip.txt", dtype=str, delimiter="\n")
+    # female_sent = np.loadtxt("../../data/female_sentences_clip.txt", dtype=str, delimiter="\n")
+    # neut_sent = np.loadtxt("../../data/neut_sentences.txt", dtype=str, delimiter="\n")
+
+    with open("../../data/male_sentences_clip.txt") as fm:
+        male_sent = np.array([line.rstrip('\n') for line in fm])
+
+    with open("../../data/female_sentences_clip.txt") as ff:
+        female_sent = np.array([line.rstrip('\n') for line in ff])
+
+    with open("../../data/neut_sentences.txt") as fn:
+        neut_sent = np.array([line.rstrip('\n') for line in fn])
     print("The number of the dataset (male, female, neut): ", male_sent.shape, female_sent.shape, neut_sent.shape)
 
     male_sent = np.random.choice(male_sent, sample, replace=False)
