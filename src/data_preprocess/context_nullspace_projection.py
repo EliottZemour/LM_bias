@@ -65,15 +65,15 @@ from torch.nn import functional as F
 
 def load_data():
     # load clipped sentences
-    sample = 5000
+    sample = 4500 #5000
     # male_sent = np.loadtxt("../../data/male_sentences_clip.txt", dtype=str, delimiter="\n")
     # female_sent = np.loadtxt("../../data/female_sentences_clip.txt", dtype=str, delimiter="\n")
     # neut_sent = np.loadtxt("../../data/neut_sentences.txt", dtype=str, delimiter="\n")
 
-    with open("../../data/male_sentences_clip.txt") as fm:
+    with open("../../data-splitted/male_clip.txt") as fm:
         male_sent = np.array([line.rstrip('\n') for line in fm])
 
-    with open("../../data/female_sentences_clip.txt") as ff:
+    with open("../../data-splitted/female_clip.txt") as ff:
         female_sent = np.array([line.rstrip('\n') for line in ff])
 
     with open("../../data/neut_sentences.txt") as fn:
@@ -106,9 +106,9 @@ def extract_feat_of_context(male_sent, female_sent, neut_sent):
 
     # save features into npy files
     male_feat, female_feat, neut_feat = np.array(male_feat), np.array(female_feat), np.array(neut_feat)
-    np.save("../../data/male_sentence_clip_feat_random.npy", male_feat)
-    np.save("../../data/female_sentence_clip_feat_random.npy", female_feat)
-    np.save("../../data/neut_sentence_clip_feat_random.npy", neut_feat)
+    np.save("../../data-splitted/male_sentence_clip_feat_random.npy", male_feat)
+    np.save("../../data-splitted/female_sentence_clip_feat_random.npy", female_feat)
+    np.save("../../data-splitted/neut_sentence_clip_feat_random.npy", neut_feat)
 
 
 def split_dataset(male_feat, female_feat, neut_feat):
@@ -279,7 +279,7 @@ def debias_effect_analysis(P, rowspace_projs, Ws, X_train, X_dev, X_test, Y_trai
 
 if __name__ == '__main__':
     male_sent, female_sent, neut_sent = load_data()
-    # extract_feat_of_context(male_sent, female_sent, neut_sent)
+    extract_feat_of_context(male_sent, female_sent, neut_sent)
 
     # we load the saved context embedding
     male_feat, female_feat, neut_feat = np.load("../../data/male_sentence_clip_feat_random.npy"), \
@@ -292,4 +292,4 @@ if __name__ == '__main__':
     P, rowspace_projs, Ws = apply_nullspace_projection(X_train, X_dev, X_test, Y_train, Y_dev, Y_test)
     # debias_effect_analysis(P, rowspace_projs, Ws, X_train, X_dev, X_test, Y_train, Y_dev, Y_test)
 
-    np.save("../../data/saved_P/P.npy", P)
+    np.save("../../data-splitted/saved_P/P.npy", P)
