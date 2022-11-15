@@ -231,9 +231,10 @@ def local_Hellinger(male_context, female_context, tokenizer, model, embedding, P
             hell2 = np.sqrt(1-np.sum(np.sqrt(probs_f[0].detach().numpy()*probs_m[0].detach().numpy())))
             # KL1 = scipy.stats.entropy(probs_m[0].detach().numpy(), probs_f[0].detach().numpy())
             # KL2 = scipy.stats.entropy(probs_f[0].detach().numpy(), probs_m[0].detach().numpy())
-
-            kl1_avg[a] += hell1
-            kl2_avg[a] += hell2
+            if np.isfinite(hell1):
+                kl1_avg[a] += hell1
+            if np.isfinite(hell2):
+                kl2_avg[a] += hell2
 
             # print(hell1)
 
@@ -459,9 +460,12 @@ def local_Hellinger_subspace(male_context, female_context, tokenizer, model, emb
         hell2 = np.sqrt(1-np.sum(np.sqrt(probs_f[0].detach().numpy()*probs_m[0].detach().numpy())))
         # KL1 = scipy.stats.entropy(probs_m[0].detach().numpy(), probs_f[0].detach().numpy())
         # KL2 = scipy.stats.entropy(probs_f[0].detach().numpy(), probs_m[0].detach().numpy())
-
-        kl1_avg += hell1
-        kl2_avg += hell2
+        if np.isfinite(hell1):
+            kl1_avg += hell1
+        if np.isfinite(hell2):
+            kl2_avg += hell2
+        # kl1_avg += hell1
+        # kl2_avg += hell2
 
     return kl1_avg, kl2_avg
 
