@@ -95,11 +95,11 @@ def extract_feat_of_context(male_sent, female_sent, neut_sent):
             input_ids = tokenizer.encode(sent, add_special_tokens=False, return_tensors="pt")
             outputs = model.transformer(input_ids=input_ids)[0][0][-1].detach().numpy()    # (2, batch, len, dim)
             male_feat.append(outputs)
-        for sent in female_sent.tolist():
+        for sent in tqdm.tqdm(female_sent.tolist()):
             input_ids = tokenizer.encode(sent, add_special_tokens=False, return_tensors="pt")
             outputs = model.transformer(input_ids=input_ids)[0][0][-1].detach().numpy()    # (batch, len, dim)
             female_feat.append(outputs)
-        for sent in neut_sent.tolist():
+        for sent in tqdm.tqdm(neut_sent.tolist()):
             input_ids = tokenizer.encode(sent, add_special_tokens=False, return_tensors="pt")
             outputs = model.transformer(input_ids=input_ids)[0][0][-1].detach().numpy()    # (batch, len, dim)
             neut_feat.append(outputs)
