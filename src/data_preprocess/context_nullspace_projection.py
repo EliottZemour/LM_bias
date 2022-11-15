@@ -91,7 +91,7 @@ def extract_feat_of_context(male_sent, female_sent, neut_sent):
     # obtain features of the last token
     male_feat, female_feat, neut_feat = [], [], []
     with torch.no_grad():
-        for sent in male_sent.tolist():
+        for sent in tqdm.tqdm(male_sent.tolist()):
             input_ids = tokenizer.encode(sent, add_special_tokens=False, return_tensors="pt")
             outputs = model.transformer(input_ids=input_ids)[0][0][-1].detach().numpy()    # (2, batch, len, dim)
             male_feat.append(outputs)
@@ -231,11 +231,11 @@ def debias_effect_analysis(P, rowspace_projs, Ws, X_train, X_dev, X_test, Y_trai
         (np.ones(male_feat.shape[0], dtype=int), np.zeros(female_feat.shape[0], dtype=int)))
     ind2label = {1: "Male-biased", 0: "Female-biased"}
     tsne_before = tsne(all_significantly_biased_vecs, all_significantly_biased_labels,
-                       ind2label=ind2label)
+                       ind2label=ind2label, title="before_debiasing")
 
     all_significantly_biased_cleaned = P.dot(all_significantly_biased_vecs.T).T
     tsne_after = tsne(all_significantly_biased_cleaned, all_significantly_biased_labels,
-                      ind2label=ind2label)
+                      ind2label=ind2label, title="after_debiasing")
 
     def perform_purity_test(vecs, k, labels_true):
         np.random.seed(0)
@@ -252,29 +252,29 @@ def debias_effect_analysis(P, rowspace_projs, Ws, X_train, X_dev, X_test, Y_trai
         labels_pred = clustering.labels_
         return sklearn.metrics.v_measure_score(labels_true, labels_pred)
 
-    # remove neutral class, keep only male and female biased
-    X_dev = X_dev[Y_dev != -1]
-    X_train = X_train[Y_train != -1]
-    X_test = X_test[Y_test != -1]
+    # # remove neutral class, keep only male and female biased
+    # X_dev = X_dev[Y_dev != -1]
+    # X_train = X_train[Y_train != -1]
+    # X_test = X_test[Y_test != -1]
 
-    Y_dev = Y_dev[Y_dev != -1]
-    Y_train = Y_train[Y_train != -1]
-    Y_test = Y_test[Y_test != -1]
+    # Y_dev = Y_dev[Y_dev != -1]
+    # Y_train = Y_train[Y_train != -1]
+    # Y_test = Y_test[Y_test != -1]
 
-    X_dev_cleaned = (P.dot(X_dev.T)).T
-    X_test_cleaned = (P.dot(X_test.T)).T
-    X_trained_cleaned = (P.dot(X_train.T)).T
+    # X_dev_cleaned = (P.dot(X_dev.T)).T
+    # X_test_cleaned = (P.dot(X_test.T)).T
+    # X_trained_cleaned = (P.dot(X_train.T)).T
 
-    print("V-measure-before (TSNE space): {}".format(compute_v_measure(tsne_before, all_significantly_biased_labels)))
-    print("V-measure-after (TSNE space): {}".format(compute_v_measure(tsne_after, all_significantly_biased_labels)))
+    # print("V-measure-before (TSNE space): {}".format(compute_v_measure(tsne_before, all_significantly_biased_labels)))
+    # print("V-measure-after (TSNE space): {}".format(compute_v_measure(tsne_after, all_significantly_biased_labels)))
 
-    print("V-measure-before (original space): {}".format(
-        compute_v_measure(all_significantly_biased_vecs, all_significantly_biased_labels), k=2))
-    print("V-measure-after (original space): {}".format(compute_v_measure(X_test_cleaned, Y_test), k=2))
+    # print("V-measure-before (original space): {}".format(
+    #     compute_v_measure(all_significantly_biased_vecs, all_significantly_biased_labels), k=2))
+    # print("V-measure-after (original space): {}".format(compute_v_measure(X_test_cleaned, Y_test), k=2))
 
-    rank_before = np.linalg.matrix_rank(X_train)
-    rank_after = np.linalg.matrix_rank(X_trained_cleaned)
-    print("Rank before: {}; Rank after: {}".format(rank_before, rank_after))
+    # rank_before = np.linalg.matrix_rank(X_train)
+    # rank_after = np.linalg.matrix_rank(X_trained_cleaned)
+    # print("Rank before: {}; Rank after: {}".format(rank_before, rank_after))
 
 
 if __name__ == '__main__':
@@ -290,6 +290,6 @@ if __name__ == '__main__':
     # train_simple_classifier(X_train, X_dev, X_test, Y_train, Y_dev, Y_test, "SVM")
 
     P, rowspace_projs, Ws = apply_nullspace_projection(X_train, X_dev, X_test, Y_train, Y_dev, Y_test)
-    debias_effect_analysis(P, rowspace_projs, Ws, X_train, X_dev, X_test, Y_train, Y_dev, Y_test)
+    # debias_effect_analysis(P, rowspace_projs, Ws, X_train, X_dev, X_test, Y_train, Y_dev, Y_test)
 
     np.save("../../data/saved_P/P.npy", P)

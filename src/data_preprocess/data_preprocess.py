@@ -212,7 +212,7 @@ def data_preprocess():
     # np.savetxt("../../data/male_sentences.txt", male_biased_sent, fmt="%s")
     # np.savetxt("../../data/female_sentences.txt", female_biased_sent, fmt="%s")
     # np.savetxt("../../data/neut_sentences.txt", neut_sent_clip, fmt="%s")
-    # np.savetxt("../../data/male_sentences_clip.txt", male_biased_sent_clip, fmt="%s")
+    # np.savetxt("../../data/male_sentences_clip000.txt", male_biased_sent_clip, fmt="%s")
     # np.savetxt("../../data/female_sentences_clip.txt", female_biased_sent_clip, fmt="%s")
 
 

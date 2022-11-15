@@ -270,6 +270,6 @@ if __name__ == '__main__':
     print(output_file, file=f)
 
     # measure bias
-    topk_overlap(tokenizer, model, embedding, P, A, device, f)
+    # topk_overlap(tokenizer, model, embedding, P, A, device, f)
     hellinger_distance_between_bias_swapped_context(tokenizer, model, embedding, P, A, device, f)
-    probabiliy_of_real_next_token(tokenizer, model, embedding, P, A, device, f)
+    # probabiliy_of_real_next_token(tokenizer, model, embedding, P, A, device, f)
