@@ -180,10 +180,10 @@ def hellinger_distance_between_bias_swapped_context(tokenizer, model, embedding,
     # male_context = np.loadtxt("../../data/kl_corpus_male_context.txt", dtype=str, delimiter="\n")
     # female_context = np.loadtxt("../../data/kl_corpus_female_context.txt", dtype=str, delimiter="\n")
 
-    with open('../../data/kl_corpus_male_context.txt') as fm:
+    with open('../../data-splitted/kl_male.txt') as fm:
         male_context = np.array([line.rstrip('\n') for line in fm])
 
-    with open('../../data/kl_corpus_female_context.txt') as ff:
+    with open('../../data-splitted/kl_female.txt') as ff:
         female_context = np.array([line.rstrip('\n') for line in ff])
 
     # kl1_avg, kl2_avg = local_kl(male_context, female_context, tokenizer, model, embedding, P, A, device)
@@ -250,7 +250,8 @@ if __name__ == '__main__':
     model = model.to(device)
 
     # load P
-    P = np.load("../../data/saved_P/P_gender_test_79.npy")
+    # P = np.load("../../data/saved_P/P_gender_test_79.npy")
+    P = np.load("../../data-splitted/saved_P/P.npy")
 
     # load gpt2 embedding
     embedding = model.lm_head.weight.cpu().detach().numpy()
@@ -264,7 +265,7 @@ if __name__ == '__main__':
     output_file = "../../res/local_res/"
     if not os.path.exists(output_file):
         os.makedirs(output_file)
-    f = open(output_file + 'res.txt', 'w')
+    f = open(output_file + 'res_split.txt', 'w')
 
     print(output_file)
     print(output_file, file=f)

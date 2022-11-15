@@ -4,7 +4,7 @@ from torch.nn import functional as F
 import scipy.stats
 from sklearn.decomposition import PCA
 import json
-
+from tqdm import tqdm
 
 def doPCA(pairs, num_components=10):
     matrix = []
@@ -203,7 +203,7 @@ def local_kl(male_context, female_context, tokenizer, model, embedding, P, A, de
 def local_Hellinger(male_context, female_context, tokenizer, model, embedding, P, A, device):
     kl1_avg = [0. for ii in range(len(A))]
     kl2_avg = [0. for ii in range(len(A))]
-    for i in range(male_context.shape[0]):
+    for i in tqdm(range(male_context.shape[0])):
         input_ids_m = tokenizer.encode(male_context[i], add_special_tokens=False, return_tensors="pt")
         input_ids_m = input_ids_m.to(device)
         outputs = model.transformer(input_ids=input_ids_m)[0][0][-1].cpu().detach().numpy()  # (2, batch, len, dim), embedding for male context
