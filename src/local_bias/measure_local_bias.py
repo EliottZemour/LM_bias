@@ -248,7 +248,7 @@ if __name__ == '__main__':
     model = model_class.from_pretrained("gpt2")
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = model.to(device)
-
+    model.transformer = model.transformer.to(device)
     # load P
     # P = np.load("../../data/saved_P/P_gender_test_79.npy")
     P = np.load("../../data-splitted/saved_P/P.npy")

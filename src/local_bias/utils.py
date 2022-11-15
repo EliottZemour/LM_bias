@@ -203,17 +203,19 @@ def local_kl(male_context, female_context, tokenizer, model, embedding, P, A, de
 def local_Hellinger(male_context, female_context, tokenizer, model, embedding, P, A, device):
     kl1_avg = [0. for ii in range(len(A))]
     kl2_avg = [0. for ii in range(len(A))]
+    input_ids_male = tokenizer.encode(male_context, add_special_tokens=False, return_tensors="pt")
+    input_ids_female = tokenizer.encode(female_context, add_special_tokens=False, return_tensors="pt")
     for i in tqdm(range(male_context.shape[0])):
-        input_ids_m = tokenizer.encode(male_context[i], add_special_tokens=False, return_tensors="pt")
-        input_ids_m = input_ids_m.to(device)
-        # outputs = model.transformer(input_ids=input_ids_m)[0][0][-1].cpu().detach().numpy()  # (2, batch, len, dim), embedding for male context
-        outputs = model(input_ids=input_ids_m)[0][0][-1].cpu().detach().numpy()  # (2, batch, len, dim), embedding for male context
+        # input_ids_m = tokenizer.encode(male_context[i], add_special_tokens=False, return_tensors="pt")
+        input_ids_m = input_ids_male[i].to(device)
+        outputs = model.transformer(input_ids=input_ids_m)[0][0][-1].cpu().detach().numpy()  # (2, batch, len, dim), embedding for male context
+        # outputs = model(input_ids=input_ids_m)[0][0][-1].cpu().detach().numpy()  # (2, batch, len, dim), embedding for male context
         outputs_P = P.dot(outputs.T).T      # debiased embedding for male context
 
-        input_ids_f = tokenizer.encode(female_context[i], add_special_tokens=False, return_tensors="pt")
-        input_ids_f = input_ids_f.to(device)
-        # outputs_f = model.transformer(input_ids=input_ids_f)[0][0][-1].cpu().detach().numpy()  # (2, batch, len, dim), embedding for female context
-        outputs_f = model(input_ids=input_ids_f)[0][0][-1].cpu().detach().numpy()  # (2, batch, len, dim), embedding for female context
+        # input_ids_f = tokenizer.encode(female_context[i], add_special_tokens=False, return_tensors="pt")
+        input_ids_f = input_ids_female[i].to(device)
+        outputs_f = model.transformer(input_ids=input_ids_f)[0][0][-1].cpu().detach().numpy()  # (2, batch, len, dim), embedding for female context
+        # outputs_f = model(input_ids=input_ids_f)[0][0][-1].cpu().detach().numpy()  # (2, batch, len, dim), embedding for female context
         outputs_P_f = P.dot(outputs_f.T).T      # debiased embedding for female context
 
         for a in range(len(A)):
