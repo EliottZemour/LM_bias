@@ -5,6 +5,7 @@ import scipy.stats
 from sklearn.decomposition import PCA
 import json
 from tqdm import tqdm
+import math
 
 def doPCA(pairs, num_components=10):
     matrix = []
@@ -35,6 +36,14 @@ def drop_bias(u, v):
 
 def drop(u, v):
     return u - v * u.dot(v) / v.dot(v)
+
+def hellinger_fast(p, q):
+    """Hellinger distance between two discrete distributions.
+       In pure Python.
+       Fastest version.
+    """
+    return sum([ (math.sqrt(p_i) - math.sqrt(q_i))**2 for p_i, q_i in zip(p,q) ])
+
 
 def top_k_top_p_filtering(
     logits,    # (1, 50257)
@@ -167,7 +176,7 @@ def topk_kl_overlap_subspace(prompt_text, k, tokenizer, model, embedding, mode, 
 def local_kl(male_context, female_context, tokenizer, model, embedding, P, A, device):
     kl1_avg = [0. for ii in range(len(A))]
     kl2_avg = [0. for ii in range(len(A))]
-    for i in range(male_context.shape[0]):
+    for i in tqdm(range(male_context.shape[0])):
         input_ids_m = tokenizer.encode(male_context[i], add_special_tokens=False, return_tensors="pt")
         input_ids_m = input_ids_m.to(device)
         outputs = model.transformer(input_ids=input_ids_m)[0][0][-1].cpu().detach().numpy()  # (2, batch, len, dim)
@@ -231,8 +240,11 @@ def local_Hellinger(male_context, female_context, tokenizer, model, embedding, P
             new_logits_f = new_logits_f.unsqueeze(0)  # [1, 50257]
             probs_f = F.softmax(new_logits_f, dim=-1)
 
-            hell1 = np.sqrt(1-np.sum(np.sqrt(probs_m[0].detach().numpy()*probs_f[0].detach().numpy())))
-            hell2 = np.sqrt(1-np.sum(np.sqrt(probs_f[0].detach().numpy()*probs_m[0].detach().numpy())))
+            # hell1 = np.sqrt(1-np.sum(np.sqrt(probs_m[0].detach().numpy()*probs_f[0].detach().numpy())))
+            # hell2 = np.sqrt(1-np.sum(np.sqrt(probs_f[0].detach().numpy()*probs_m[0].detach().numpy())))
+            hell1 = hellinger_fast(probs_m[0].detach().numpy(), probs_f[0].detach().numpy())
+            hell2 = hell1 # hellinger_fast(probs_f[0].detach().numpy(), probs_m[0].detach().numpy())
+
             # KL1 = scipy.stats.entropy(probs_m[0].detach().numpy(), probs_f[0].detach().numpy())
             # KL2 = scipy.stats.entropy(probs_f[0].detach().numpy(), probs_m[0].detach().numpy())
             if np.isfinite(hell1):
